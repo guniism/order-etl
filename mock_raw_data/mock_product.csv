@@ -1,0 +1,13 @@
+product_code,name,category,price
+CH-001,Fertilizer,Chemical,400
+CH-002,Plastic Thread,Chemical,1200
+CH-003,Rubber Sheet,Chemical,1500
+FL-001,Air Filter,Filter,800
+FL-002,Water Filter,Filter,700
+FL-003,Gas Filter,Filter,900
+EQ-001,Water Pump,Equipment,4500
+EQ-002,Air Compressor,Equipment,8500
+EQ-003,Electric Motor,Equipment,6200
+PK-001,Plastic Bag,Packaging,50
+PK-002,Paper Box,Packaging,120
+PK-003,Carton Box,Packaging,200
