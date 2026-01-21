@@ -127,6 +127,6 @@ def create_table_product(cursor):
 def create_stg(cursor):
     create_schema_stg(cursor)
 
-    create_table_salesorder(cursor)
     create_table_customer(cursor)
     create_table_product(cursor)
+    create_table_salesorder(cursor)

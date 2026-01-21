@@ -17,7 +17,7 @@ def main():
 
     # print(df_order_transformed)
     load(df_order_transformed, df_customer_transformed, df_product_transformed)
-    print("Data Load Completed.")
+    print("Data Load to Data Warehouse Completed.")
 
     # print(df_customer_transformed)
 

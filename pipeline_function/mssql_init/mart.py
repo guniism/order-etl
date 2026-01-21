@@ -1,14 +1,14 @@
-def create_schema_dw(cursor):
+def create_schema_mart(cursor):
     cursor.execute("""
         DECLARE @created BIT = 0;
 
         IF NOT EXISTS (
             SELECT 1
             FROM sys.schemas
-            WHERE name = 'dw'
+            WHERE name = 'mart'
         )
         BEGIN
-            EXEC('CREATE SCHEMA dw');
+            EXEC('CREATE SCHEMA mart');
             SET @created = 1;
         END;
 
@@ -18,13 +18,13 @@ def create_schema_dw(cursor):
     created = cursor.fetchone()[0]
 
     if created:
-        print("- Schema 'dw' created successfully.")
+        print("Schema 'mart' created successfully.")
     else:
-        print("- Schema 'dw' already exists.")
+        print("Schema 'mart' already exists.")
 
 
 
-def create_table_salesorder(cursor):
+def create_mart_salesorder(cursor):
     cursor.execute("""
         DECLARE @created BIT = 0;
 
@@ -32,23 +32,31 @@ def create_table_salesorder(cursor):
             SELECT 1
             FROM sys.tables t
             JOIN sys.schemas s ON t.schema_id = s.schema_id
-            WHERE t.name = 'SalesOrders'
-            AND s.name = 'dw'
+            WHERE t.name = 'FactSalesOrders'
+            AND s.name = 'mart'
         )
         BEGIN
-            CREATE TABLE dw.SalesOrders (
-                OrderSK INT IDENTITY(1,1) PRIMARY KEY,
+            CREATE TABLE mart.FactSalesOrders (
+                SalesOrderSK INT IDENTITY(1,1) PRIMARY KEY,
 
                 OrderID VARCHAR(50) NOT NULL,
                 OrderDate DATETIME2 NOT NULL,
-                CustomerID VARCHAR(50) NOT NULL,
-                ProductID VARCHAR(50) NOT NULL,
+
+                CustomerSK INT NOT NULL,
+                ProductSK INT NOT NULL,
+
                 Quantity INT NOT NULL,
-                   
-                HashDiff VARBINARY(32) NOT NULL,
+                SalesAmount DECIMAL(18,2) NOT NULL,
 
                 LoadDate DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
-                IsCurrent BIT NOT NULL DEFAULT 1
+
+                CONSTRAINT FK_Fact_Customer
+                    FOREIGN KEY (CustomerSK)
+                    REFERENCES mart.DimCustomers(CustomerSK),
+
+                CONSTRAINT FK_Fact_Product
+                    FOREIGN KEY (ProductSK)
+                    REFERENCES mart.DimProducts(ProductSK)
             );
             SET @created = 1;
         END;
@@ -59,11 +67,11 @@ def create_table_salesorder(cursor):
     created = cursor.fetchone()[0]
 
     if created:
-        print(" - Table 'dw.SalesOrders' created successfully.")
+        print("- Table 'mart.FactSalesOrders' created successfully.")
     else:
-        print(" - Table 'dw.SalesOrders' already exists.")
+        print("- Table 'mart.FactSalesOrders' already exists.")
     
-def create_table_customer(cursor):
+def create_mart_customer(cursor):
     cursor.execute("""
         DECLARE @created BIT = 0;
 
@@ -71,22 +79,19 @@ def create_table_customer(cursor):
             SELECT 1
             FROM sys.tables t
             JOIN sys.schemas s ON t.schema_id = s.schema_id
-            WHERE t.name = 'Customers'
-            AND s.name = 'dw'
+            WHERE t.name = 'DimCustomers'
+            AND s.name = 'mart'
         )
         BEGIN
-           CREATE TABLE dw.Customers (
+            CREATE TABLE mart.DimCustomers (
                 CustomerSK INT IDENTITY(1,1) PRIMARY KEY,
-
+                   
                 CustomerID VARCHAR(50) NOT NULL,
                 CustomerName VARCHAR(50) NOT NULL,
                 Industry VARCHAR(50) NOT NULL,
                 Country VARCHAR(50) NOT NULL,
-                        
-                HashDiff VARBINARY(32) NOT NULL,
 
                 LoadDate DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
-                IsCurrent BIT NOT NULL DEFAULT 1
             );
             SET @created = 1;
         END;
@@ -97,11 +102,11 @@ def create_table_customer(cursor):
     created = cursor.fetchone()[0]
 
     if created:
-        print(" - Table 'dw.Customers' created successfully.")
+        print("- Table 'mart.DimCustomers' created successfully.")
     else:
-        print(" - Table 'dw.Customers' already exists.")
+        print("- Table 'mart.DimCustomers' already exists.")
 
-def create_table_product(cursor):
+def create_mart_product(cursor):
     cursor.execute("""
         DECLARE @created BIT = 0;
 
@@ -109,22 +114,19 @@ def create_table_product(cursor):
             SELECT 1
             FROM sys.tables t
             JOIN sys.schemas s ON t.schema_id = s.schema_id
-            WHERE t.name = 'Products'
-            AND s.name = 'dw'
+            WHERE t.name = 'DimProducts'
+            AND s.name = 'mart'
         )
         BEGIN
-            CREATE TABLE dw.Products (
+            CREATE TABLE mart.DimProducts (
                 ProductSK INT IDENTITY(1,1) PRIMARY KEY,
 
                 ProductID VARCHAR(50) NOT NULL,
                 ProductName VARCHAR(50) NOT NULL,
                 Category VARCHAR(50) NOT NULL,
                 Price DECIMAL(18,2) NOT NULL,
-                        
-                HashDiff VARBINARY(32) NOT NULL,
 
                 LoadDate DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
-                IsCurrent BIT NOT NULL DEFAULT 1
             );
             SET @created = 1;
         END;
@@ -135,13 +137,13 @@ def create_table_product(cursor):
     created = cursor.fetchone()[0]
 
     if created:
-        print(" - Table 'dw.Products' created successfully.")
+        print("- Table 'mart.DimProducts' created successfully.")
     else:
-        print(" - Table 'dw.Products' already exists.")
+        print("- Table 'mart.DimProducts' already exists.")
 
 def create_dw(cursor):
-    create_schema_dw(cursor)
+    create_schema_mart(cursor)
 
-    create_table_customer(cursor)
-    create_table_product(cursor)
-    create_table_salesorder(cursor)
+    create_mart_customer(cursor)
+    create_mart_product(cursor)
+    create_mart_salesorder(cursor)
