@@ -1,7 +1,7 @@
 services:
-  mssql:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: mssql-order-etl
+  azuresql:
+    image: mcr.microsoft.com/azure-sql-edge
+    container_name: azuresql-order-etl
     hostname: mssql-order-etl
     ports:
       - "1433:1433"
@@ -11,8 +11,8 @@ services:
       MSSQL_PID: "Standard"
       TZ: "Asia/Bangkok"
     volumes:
-      - mssql_data:/var/opt/mssql
+      - azuresql_data:/var/opt/mssql
     restart: unless-stopped
 
 volumes:
-  mssql_data:
+  azuresql_data:
