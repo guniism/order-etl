@@ -1,7 +1,9 @@
 from pipeline_function.extrack import extract
+from pipeline_function.load2mart import load2mart
 from pipeline_function.transform import transform
 from pipeline_function.mssql_init.init import db_init
 from pipeline_function.load import load
+from pipeline_function.mssql_init.mart import mart_init
 
 def main():
     # Data Extraction process from mock csv files
@@ -20,6 +22,11 @@ def main():
     print("Data Load to Data Warehouse Completed.")
 
     # print(df_customer_transformed)
+    mart_init()
+    # print("Data Mart Initialization Completed.")
+
+    load2mart()
+    print("Data Load to Data Mart Completed.")
 
 if __name__ == "__main__":
     main()

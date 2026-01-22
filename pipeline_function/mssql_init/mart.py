@@ -1,3 +1,8 @@
+from pipeline_function.mssql_init.init import check_db_ready
+from dotenv import load_dotenv
+import os
+from mssql_python import connect
+
 def create_schema_mart(cursor):
     cursor.execute("""
         DECLARE @created BIT = 0;
@@ -46,7 +51,6 @@ def create_mart_salesorder(cursor):
                 ProductSK INT NOT NULL,
 
                 Quantity INT NOT NULL,
-                SalesAmount DECIMAL(18,2) NOT NULL,
 
                 LoadDate DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
 
@@ -141,9 +145,30 @@ def create_mart_product(cursor):
     else:
         print("- Table 'mart.DimProducts' already exists.")
 
-def create_dw(cursor):
+def create_mart(cursor):
     create_schema_mart(cursor)
 
     create_mart_customer(cursor)
     create_mart_product(cursor)
     create_mart_salesorder(cursor)
+
+
+def mart_init():
+    if not check_db_ready():
+        raise RuntimeError("SQL Server is not ready. Please run: docker compose up -d")
+    load_dotenv()
+    connection = connect(
+        os.getenv("MSSQL_DW_CONNECTION_STR"),
+        autocommit=True
+    )
+    cursor = connection.cursor()
+    try:
+        # print(df_order)
+        create_mart(cursor)
+
+
+    finally:
+        if cursor:
+            cursor.close()
+        if connection:
+            connection.close()
