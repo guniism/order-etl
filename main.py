@@ -17,14 +17,14 @@ def main():
     # Docker initialization
     db_init()
 
-    # print(df_order_transformed)
+    # Load data to Data Warehouse
     load(df_order_transformed, df_customer_transformed, df_product_transformed)
     print("Data Load to Data Warehouse Completed.")
 
-    # print(df_customer_transformed)
+    # Dara Mart initialization
     mart_init()
-    # print("Data Mart Initialization Completed.")
 
+    # Load data to Data Mart
     load2mart()
     print("Data Load to Data Mart Completed.")
 

@@ -1,20 +1,7 @@
-import os
-from dotenv import load_dotenv
-from socket import socket
-from mssql_python import connect
 from pipeline_function.mssql_init.warehouse import create_dw
 from pipeline_function.mssql_init.stage import create_stg
+from pipeline_function.mssql_init.connect import connect_mssql_dw, connect_mssql_master
 
-def check_db_ready(host="localhost", port=1433, timeout=3):
-    s = socket()
-    s.settimeout(timeout)
-    try:
-        s.connect((host, port))
-        return True
-    except OSError:
-        return False
-    finally:
-        s.close()
 
 def check_create_database(cursor, db_name="SalesDataWarehouse"):
     # db_name = "SalesDataWarehouse"
@@ -45,23 +32,7 @@ def check_create_database(cursor, db_name="SalesDataWarehouse"):
 #     return cursor.fetchone()[0]
 
 def db_init():
-    if not check_db_ready():
-        raise RuntimeError("SQL Server is not ready. Please run: docker compose up -d")
-    
-        # connection_string = (
-    #     "SERVER=localhost,1433;"
-    #     "DATABASE=master;"
-    #     "UID=sa;"
-    #     "PWD=Str0ngP@ssw0rd!;"
-    #     "Encrypt=no;"
-    #     "TrustServerCertificate=yes;"
-    # )
-
-    load_dotenv()
-    connection = connect(
-        os.getenv("MSSQL_MASTER_CONNECTION_STR"),
-        autocommit=True
-    )
+    connection = connect_mssql_master()
 
     cursor = connection.cursor()
     try:
@@ -73,11 +44,7 @@ def db_init():
         if connection:
             connection.close()
 
-    load_dotenv()
-    connection = connect(
-        os.getenv("MSSQL_DW_CONNECTION_STR"),
-        autocommit=True
-    )
+    connection = connect_mssql_dw()
     cursor = connection.cursor()
     try:
         # is_table_exists(cursor, "SalesOrder")

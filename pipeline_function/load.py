@@ -1,7 +1,4 @@
-from pipeline_function.mssql_init.init import check_db_ready
-from dotenv import load_dotenv
-from mssql_python import connect
-import os
+from pipeline_function.mssql_init.connect import connect_mssql_dw
 
 def load_to_salesorders(cursor, df_order):
     cursor.execute("TRUNCATE TABLE stg.SalesOrders")
@@ -129,13 +126,7 @@ def load_to_products(cursor, df_product):
     
 
 def load(df_order, df_customer,  df_product):
-    if not check_db_ready():
-        raise RuntimeError("SQL Server is not ready. Please run: docker compose up -d")
-    load_dotenv()
-    connection = connect(
-        os.getenv("MSSQL_DW_CONNECTION_STR"),
-        autocommit=True
-    )
+    connection = connect_mssql_dw()
     cursor = connection.cursor()
     try:
         # print(df_order)

@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 from mssql_python import connect
-from pipeline_function.mssql_init.init import check_db_ready
+from pipeline_function.mssql_init.connect import connect_mssql_dw
 
 def merge_dim_customers(cursor):
     print("- Merging DimCustomers...")
@@ -72,13 +72,7 @@ def merge_fact_sales(cursor):
     """)
 
 def load2mart():
-    if not check_db_ready():
-        raise RuntimeError("SQL Server is not ready. Please run: docker compose up -d")
-    load_dotenv()
-    connection = connect(
-        os.getenv("MSSQL_DW_CONNECTION_STR"),
-        autocommit=True
-    )
+    connection = connect_mssql_dw()
     cursor = connection.cursor()
     try:
         merge_dim_customers(cursor)

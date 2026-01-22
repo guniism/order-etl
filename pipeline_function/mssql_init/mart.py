@@ -1,7 +1,4 @@
-from pipeline_function.mssql_init.init import check_db_ready
-from dotenv import load_dotenv
-import os
-from mssql_python import connect
+from pipeline_function.mssql_init.connect import connect_mssql_dw
 
 def create_schema_mart(cursor):
     cursor.execute("""
@@ -145,6 +142,60 @@ def create_mart_product(cursor):
     else:
         print("- Table 'mart.DimProducts' already exists.")
 
+def create_vw_salesorders(cursor):
+    cursor.execute("""
+        DECLARE @created BIT = 0;
+
+        IF NOT EXISTS (
+            SELECT 1
+            FROM sys.views v
+            JOIN sys.schemas s ON v.schema_id = s.schema_id
+            WHERE v.name = 'VWSalesOrders'
+            AND s.name = 'mart'
+        )
+        BEGIN
+            EXEC('
+                CREATE VIEW mart.VWSalesOrders
+                AS
+                SELECT
+                    f.SalesOrderSK,
+
+                    f.OrderID,
+                    f.OrderDate,
+
+                    c.CustomerID,
+                    c.CustomerName,
+                    c.Industry,
+                    c.Country,
+
+                    p.ProductID,
+                    p.ProductName,
+                    p.Category,
+                    p.Price,
+
+                    f.Quantity,
+                    (f.Quantity * p.Price) AS TotalAmount,
+
+                    f.LoadDate
+                FROM mart.FactSalesOrders f
+                JOIN mart.DimCustomers c
+                    ON f.CustomerSK = c.CustomerSK
+                JOIN mart.DimProducts p
+                    ON f.ProductSK = p.ProductSK
+            ');
+            SET @created = 1;
+        END;
+
+        SELECT @created AS view_created;
+    """)
+
+    created = cursor.fetchone()[0]
+
+    if created:
+        print("- View 'mart.VWSalesOrders' created successfully.")
+    else:
+        print("- View 'mart.VWSalesOrders' already exists.")
+
 def create_mart(cursor):
     create_schema_mart(cursor)
 
@@ -152,15 +203,11 @@ def create_mart(cursor):
     create_mart_product(cursor)
     create_mart_salesorder(cursor)
 
+    create_vw_salesorders(cursor)
+
 
 def mart_init():
-    if not check_db_ready():
-        raise RuntimeError("SQL Server is not ready. Please run: docker compose up -d")
-    load_dotenv()
-    connection = connect(
-        os.getenv("MSSQL_DW_CONNECTION_STR"),
-        autocommit=True
-    )
+    connection = connect_mssql_dw()
     cursor = connection.cursor()
     try:
         # print(df_order)
